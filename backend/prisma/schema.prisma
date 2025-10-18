@@ -1,0 +1,74 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  name        String
+  email       String       @unique
+  password    String
+  role        String       @default("EMPLOYEE")
+  employeeId  String?
+  department  String?
+  designation String?
+  salary      Float?
+  phone       String?
+  address     String?
+  joiningDate DateTime?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  attendance      Attendance[]
+  assignedTasks   Task[]       @relation("AssignedTasks")
+  createdTasks    Task[]       @relation("CreatedTasks")
+
+  @@index([email])
+  @@index([role])
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  date       DateTime @default(now())
+  checkIn    DateTime?
+  checkOut   DateTime?
+  otCheckIn  DateTime?
+  otCheckOut DateTime?
+  workHours  Float    @default(0)
+  otHours    Float    @default(0)
+  status     String   @default("PRESENT")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Task {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  priority     String    @default("MEDIUM")
+  status       String    @default("PENDING")
+  dueDate      DateTime?
+  allowance    Float?
+  assignedToId String
+  assignedTo   User      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdById  String
+  createdBy    User      @relation("CreatedTasks", fields: [createdById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([status])
+}
